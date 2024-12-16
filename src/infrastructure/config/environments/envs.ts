@@ -8,8 +8,6 @@ interface EnvVars {
   DATABASE_USER: string;
   DATABASE_PASSWORD: string;
   DATABASE_NAME: string;
-  JWT_SECRET: string;
-  JWT_EXPIRES_IN: string;
   SSL: boolean;
   SYNCHRONIZE: boolean;
 }
@@ -22,8 +20,6 @@ const envsSchema = joi
     DATABASE_USER: joi.string().required(),
     DATABASE_PASSWORD: joi.string().required(),
     DATABASE_NAME: joi.string().required(),
-    JWT_SECRET: joi.string().required(),
-    JWT_EXPIRES_IN: joi.string().required(),
     SSL: joi.boolean().required(),
     SYNCHRONIZE: joi.boolean().required(),
   })
@@ -48,6 +44,4 @@ export const envs = {
     ssl: envVars.SSL,
     synchronize: envVars.SYNCHRONIZE,
   },
-  jwtSecret: envVars.JWT_SECRET,
-  jwtExpiresIn: envVars.JWT_EXPIRES_IN,
 };
