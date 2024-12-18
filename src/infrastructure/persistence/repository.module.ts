@@ -5,9 +5,11 @@ import { DataBaseConstanciasRepository } from './repositories/constancias.reposi
 import { Tramite } from './entities/tramite.entity';
 import { Cuentatramite } from './entities/cuentaTramite.entity';
 import { SolicitudActualizacion } from './entities/solicituActualización.entity';
+import { Pagos } from './entities/pagos.entity';
+import { StepsTipoTramite } from './entities/stepsTipoTramite.entity';
 
 @Module({
-  imports: [TypeOrmModuleConfig, TypeOrmModule.forFeature([Tramite, Cuentatramite, SolicitudActualizacion])],
+  imports: [TypeOrmModuleConfig, TypeOrmModule.forFeature([Tramite, Cuentatramite, SolicitudActualizacion, Pagos, StepsTipoTramite])],
   providers: [DataBaseConstanciasRepository],
   exports: [DataBaseConstanciasRepository],
 })

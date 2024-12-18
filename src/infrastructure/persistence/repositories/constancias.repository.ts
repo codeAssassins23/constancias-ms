@@ -1,4 +1,3 @@
-import { Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PayM } from 'src/domain/entities/pay';
 import { ProcedureM } from 'src/domain/entities/procedure';
@@ -8,7 +7,8 @@ import { Tramite } from '../entities/tramite.entity';
 import { Repository } from 'typeorm';
 import { Cuentatramite } from '../entities/cuentaTramite.entity';
 import { SolicitudActualizacion } from '../entities/solicituActualización.entity';
-import { EstadosCons } from '../entities/estadosCons.entity';
+import { Pagos } from '../entities/pagos.entity';
+import { StepsTipoTramite } from '../entities/stepsTipoTramite.entity';
 
 export class DataBaseConstanciasRepository implements ConstanciasRepository {
   constructor(
@@ -17,7 +17,11 @@ export class DataBaseConstanciasRepository implements ConstanciasRepository {
     @InjectRepository(Cuentatramite)
     private readonly cuentaTramiteRepository: Repository<Cuentatramite>,
     @InjectRepository(SolicitudActualizacion)
-    private readonly solicitudActualizacion: Repository<SolicitudActualizacion>
+    private readonly solicitudActualizacion: Repository<SolicitudActualizacion>,
+    @InjectRepository(Pagos)
+    private readonly pagos: Repository<Pagos>,
+    @InjectRepository(StepsTipoTramite)
+    private readonly stepsTipoTramite: Repository<StepsTipoTramite>
   ) {}
 
   async findInformationCertificate(procedureCode: number, campusPS: string, emplId: string, _isGraduate: string): Promise<ProcedureM> {
@@ -48,10 +52,42 @@ export class DataBaseConstanciasRepository implements ConstanciasRepository {
       throw error;
     }
   }
-  findMontoCC(itemNbr: string): Promise<PayM> {
-    throw new Error('Method not implemented');
+  async findMontoCC(itemNbr: string): Promise<PayM> {
+    try {
+      const payFound = await this.pagos.findOne({
+        where: { item: itemNbr },
+        select: ['descripcionItem', 'montoProgramado']
+      });
+      
+      const payM = new PayM();
+      payM.itemDescription = payFound.descripcionItem;
+      payM.amountProgrammed = String(payFound.montoProgramado);
+
+      return payM;
+    } catch (error) {
+      throw error;
+    }
   }
-  findSteps(typeProcedure: number): Promise<StepM[]> {
-    throw new Error('Method not implemented');
+  async findSteps(typeProcedure: number): Promise<StepM[]> {
+    try {
+      const stepsFound = await this.stepsTipoTramite.find({
+        where: {
+          TipoTramite: typeProcedure
+        }
+      });
+
+      const stepsM: StepM[] = [];
+      stepsFound.forEach((step) => {
+        const currentStep = new StepM();
+        currentStep.id = step.Id_steps;
+        currentStep.name = step.Nombre;
+        currentStep.order = step.Orden;
+        stepsM.push(currentStep);
+      });
+
+      return stepsM;
+    } catch (error) {
+      throw error;
+    }
   }
 }

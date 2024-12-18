@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm";
 import { SolicitudActualizacion } from "./solicituActualización.entity";
+import { StepsTipoTramite } from "./stepsTipoTramite.entity";
 
 @Entity("EstadosCons")
 export class EstadosCons {
@@ -27,10 +28,13 @@ export class EstadosCons {
   @Column({ type: "varchar", length: 255, nullable: true })
   nombre: string;
 
-  // Relación con SolicitudActualizacion
   @OneToMany(
     () => SolicitudActualizacion,
     (solicitud) => solicitud.EstadosCons
   )
   SolicitudActualizacion: SolicitudActualizacion[];
+
+  @ManyToOne(() => StepsTipoTramite, (step) => step.EstadosCons)
+  StepsTipoTramite: StepsTipoTramite;
+
 }
