@@ -3,20 +3,21 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { LoggerService } from './infrastructure/config/logger/logger.service';
 import { envs } from './infrastructure/config/environments/envs';
-import { LogginInterceptor } from './infrastructure/common/interceptors/logger.interceptor';
 import {
   ResponseFormat,
   ResponseIterceptor,
 } from './infrastructure/common/interceptors/response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { configureXRay } from './infrastructure/config/environments/xray';
+import { AllExceptionFilter } from './infrastructure/common/filter/exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('Constancias-ms');
 
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalInterceptors(new LogginInterceptor(new LoggerService()));
   app.useGlobalInterceptors(new ResponseIterceptor());
+  app.useGlobalFilters(new AllExceptionFilter(new LoggerService()));
 
   const config = new DocumentBuilder()
     .setTitle('Constancias-ms')
@@ -38,6 +39,8 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  configureXRay();
 
   const port = envs.port;
   await app.listen(port);

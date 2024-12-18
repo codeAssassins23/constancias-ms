@@ -1,7 +1,9 @@
+import { Type } from 'class-transformer';
 import { IsString, IsInt, MinLength } from 'class-validator';
 
 export class InformationCCDto {
   @IsInt()
+  @Type(() => Number)
   codigoTramite: number;
 
   @IsString()
