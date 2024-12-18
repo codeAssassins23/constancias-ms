@@ -71,6 +71,11 @@ export class FindStudentInformationUseCases {
     // TODO: Implementar la logica del metodo para validar los tramites
 
     // Idea: Posible solución tener una interfaz y despues clases que implementen esa interfaz, para recorrer un arreglo e implementar cada una se sus soluciones.
-    return {}
+    const columns = new Map<string, object>();
+    const configuracionTramites = await this.contanciasRepository.findConfiguracionTramite(procedureCode);
+
+    if (!Array.isArray(configuracionTramites)) return null;
+
+    return columns;
   }
 }
