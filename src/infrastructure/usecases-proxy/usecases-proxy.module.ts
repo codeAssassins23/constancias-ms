@@ -4,7 +4,7 @@ import { RepositoriesModule } from '../persistence/repository.module';
 import { DataBaseConstanciasRepository } from '../persistence/repositories/constancias.repository';
 import { LoggerService } from '../config/logger/logger.service';
 import { UseCaseProxy } from './usecases-proxy';
-import { FindStudentInformationUseCases } from 'src/application/use-cases/findStudentInformation.use-cases';
+import { FindStudentInformationUseCases } from 'src/application/use-cases/informationCC/findStudentInformation.use-cases';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ export class UseCasesProxyModule {
           useFactory: (
             constanciasRepository: DataBaseConstanciasRepository,
             logger: LoggerService
-          ) => new UseCaseProxy(new FindStudentInformationUseCases(constanciasRepository, logger))
+          ) => new UseCaseProxy(new FindStudentInformationUseCases(constanciasRepository))
         }
       ],
       exports: [

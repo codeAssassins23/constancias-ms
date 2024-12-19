@@ -1,7 +1,11 @@
 export interface ILooger {
-  debug(context: string, message: string): void;
-  log(context: string, message: string): void;
-  error(context: string, message: string, trace?: string): void;
-  warn(context: string, message: string): void;
-  verbose(context: string, message: string): void;
+  logRequest(
+    message: string,
+    additionalFields?: Partial<Record<string, any>>,
+  ): void;
+  Error(
+    message: string,
+    trace?: string,
+    additionalFields?: Partial<Record<string, any>>,
+  ): void;
 }

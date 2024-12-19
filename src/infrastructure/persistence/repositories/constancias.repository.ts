@@ -9,6 +9,9 @@ import { Cuentatramite } from '../entities/cuentaTramite.entity';
 import { SolicitudActualizacion } from '../entities/solicituActualización.entity';
 import { Pagos } from '../entities/pagos.entity';
 import { StepsTipoTramite } from '../entities/stepsTipoTramite.entity';
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { ConfiguracionMensajeM } from 'src/domain/entities/configuracionMensaje';
+import { ConfiguracionTramiteConstanciasM } from 'src/domain/entities/configuracionTramiteConstancias';
 
 export class DataBaseConstanciasRepository implements ConstanciasRepository {
   constructor(
@@ -21,13 +24,39 @@ export class DataBaseConstanciasRepository implements ConstanciasRepository {
     @InjectRepository(Pagos)
     private readonly pagos: Repository<Pagos>,
     @InjectRepository(StepsTipoTramite)
-    private readonly stepsTipoTramite: Repository<StepsTipoTramite>
+    private readonly stepsTipoTramite: Repository<StepsTipoTramite>,
   ) {}
+  findConfiguracionTramite: (procedureCode: number) => Promise<ConfiguracionTramiteConstanciasM[]>;
+  findConfiguracionMensajes: (procedureCode: number) => Promise<ConfiguracionMensajeM[]>;
 
-  async findInformationCertificate(procedureCode: number, campusPS: string, emplId: string, _isGraduate: string): Promise<ProcedureM> {
+  async findInformationCertificate(
+    procedureCode: number,
+    campusPS: string,
+    emplId: string,
+    _isGraduate: string,
+  ): Promise<ProcedureM> {
     try {
-      const tramite = await this.tramiteRepository.findOne({ where: { Codigo: procedureCode }});
-      const cuentaTramite = await this.cuentaTramiteRepository.findOne({ where: { CodigoTramite: procedureCode, Campus: campusPS }});
+      const tramite = await this.tramiteRepository.findOne({
+        where: { Codigo: procedureCode },
+      });
+
+      if (!tramite) {
+        throw new HttpException(
+          { message: 'Tramite no encontrado' },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const cuentaTramite = await this.cuentaTramiteRepository.findOne({
+        where: { CodigoTramite: procedureCode, Campus: campusPS },
+      });
+
+      if (!cuentaTramite) {
+        throw new HttpException(
+          { message: 'Cuenta de tramite no encontrada' },
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
       const tramiteM = new ProcedureM();
       tramiteM.typeProcedureId = tramite.Codigo;
@@ -36,16 +65,18 @@ export class DataBaseConstanciasRepository implements ConstanciasRepository {
       tramiteM.itemNBR = cuentaTramite.Item ?? undefined;
 
       tramiteM.idSolicitud = await this.solicitudActualizacion
-      .createQueryBuilder("solicitud")
-      .innerJoin("solicitud.EstadosCons", "estados")
-      .where("solicitud.idTramite = :codigoTramite", { codigoTramite: procedureCode })
-      .andWhere("solicitud.emplid = :emplid", { emplid: emplId })
-      .andWhere("estados.codigoEstado NOT IN (:...estadosExcluidos)", {
-        estadosExcluidos: ["AF", "AN", "ANP", "FI", "NP"],
-      })
-      .andWhere("estados.titulo != :titulo", { titulo: "Procede" })
-      .select("solicitud.idSolicitudAc", "idSolicitudAc")
-      .getRawOne();
+        .createQueryBuilder('solicitud')
+        .innerJoin('solicitud.EstadosCons', 'estados')
+        .where('solicitud.idTramite = :codigoTramite', {
+          codigoTramite: procedureCode,
+        })
+        .andWhere('solicitud.emplid = :emplid', { emplid: emplId })
+        .andWhere('estados.codigoEstado NOT IN (:...estadosExcluidos)', {
+          estadosExcluidos: ['AF', 'AN', 'ANP', 'FI', 'NP'],
+        })
+        .andWhere('estados.titulo != :titulo', { titulo: 'Procede' })
+        .select('solicitud.idSolicitudAc', 'idSolicitudAc')
+        .getRawOne();
 
       return tramiteM;
     } catch (error) {
@@ -56,9 +87,9 @@ export class DataBaseConstanciasRepository implements ConstanciasRepository {
     try {
       const payFound = await this.pagos.findOne({
         where: { item: itemNbr },
-        select: ['descripcionItem', 'montoProgramado']
+        select: ['descripcionItem', 'montoProgramado'],
       });
-      
+
       const payM = new PayM();
       payM.itemDescription = payFound.descripcionItem;
       payM.amountProgrammed = String(payFound.montoProgramado);
@@ -72,8 +103,8 @@ export class DataBaseConstanciasRepository implements ConstanciasRepository {
     try {
       const stepsFound = await this.stepsTipoTramite.find({
         where: {
-          TipoTramite: typeProcedure
-        }
+          TipoTramite: typeProcedure,
+        },
       });
 
       const stepsM: StepM[] = [];
